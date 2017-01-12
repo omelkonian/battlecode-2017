@@ -224,3 +224,8 @@ buildscript {
         resolutionStrategy.cacheDynamicVersionsFor 60, 'seconds'
     }
 }
+
+// Wrapper
+task wrapper(type: Wrapper) {
+    gradleVersion = '3.3'
+}
