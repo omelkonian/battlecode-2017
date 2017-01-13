@@ -1,13 +1,13 @@
 package units
 
-import battlecode.common._
 import battlecode.common.RobotType._
-import utils.Movement.{tryMove, randomDirection}
+import battlecode.common._
+import utils.Movement.{randomDirection, tryMove}
 
 /**
   * Default gardener unit.
   */
-class DefaultGardener extends RobotUnit {
+class ShadowGardener extends RobotUnit {
 
   @throws(classOf[GameActionException])
   override def runStep()(implicit rc: RobotController): Unit = {
@@ -20,11 +20,11 @@ class DefaultGardener extends RobotUnit {
       // Generate a random direction
       val dir: Direction = randomDirection()
 
-      // Randomly attempt to build a soldier or lumberjack in this direction
+      // Randomly attempt to build a soldier or scout in this direction
       if (rc.canBuildRobot(SOLDIER, dir) && Math.random() < .01) {
         rc.buildRobot(SOLDIER, dir)
-      } else if (rc.canBuildRobot(LUMBERJACK, dir) && Math.random() < .01 && rc.isBuildReady) {
-        rc.buildRobot(LUMBERJACK, dir)
+      } else if(rc.canBuildRobot(SCOUT, dir) && Math.random() < .01) {
+        rc.buildRobot(SCOUT, dir);
       }
 
       // Move randomly

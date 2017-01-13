@@ -9,7 +9,7 @@ import utils.Movement.{randomDirection, tryMove}
 class DefaultArchon extends RobotUnit {
 
   @throws(classOf[GameActionException])
-  override def runTurn()(implicit rc: RobotController): Unit = {
+  override def runStep()(implicit rc: RobotController): Unit = {
     try {
       // Generate a random direction
       val dir: Direction = randomDirection()

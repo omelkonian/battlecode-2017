@@ -10,8 +10,8 @@ trait RobotUnit {
   @throws(classOf[GameActionException])
   def run()(implicit rc: RobotController): Unit =
     while (true)
-      runTurn()
+      runStep()
 
   @throws(classOf[GameActionException])
-  def runTurn()(implicit rc: RobotController): Unit = ???
+  def runStep()(implicit rc: RobotController): Unit = ???
 }
