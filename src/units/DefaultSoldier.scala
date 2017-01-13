@@ -1,30 +1,35 @@
 package units
 import battlecode.common._
 import utils.Movement.{randomDirection, tryMove}
+import utils.Current.I
 
 /**
   * Default soldier unit.
   */
 class DefaultSoldier extends RobotUnit {
 
-  @throws(classOf[GameActionException])
-  override def run()(implicit rc: RobotController): Unit =
-    while (true)
-      runTurn(rc.getTeam.opponent())
+  var enemy: Team = _
 
   @throws(classOf[GameActionException])
-  def runTurn(enemy: Team)(implicit rc: RobotController): Unit = {
-    val enemy: Team = rc.getTeam.opponent()
+  override def run(): Unit = {
+    enemy = I.getTeam.opponent()
+    while (true)
+      runTurn()
+  }
+
+  @throws(classOf[GameActionException])
+  def runTurn(): Unit = {
+    val enemy: Team = I.getTeam.opponent()
       try {
         // See if there are any nearby enemy robots
-        val robots: Array[RobotInfo] = rc.senseNearbyRobots(-1, enemy)
+        val robots: Array[RobotInfo] = I.senseNearbyRobots(-1, enemy)
 
         // If there are some...
         if (robots.length > 0)
           // And we have enough bullets, and haven't attacked yet this turn...
-          if (rc.canFireSingleShot)
+          if (I.canFireSingleShot)
             // ...Then fire a bullet in the direction of the enemy.
-            rc.fireSingleShot(rc.getLocation.directionTo(robots(0).location))
+            I.fireSingleShot(I.getLocation.directionTo(robots(0).location))
 
         // Move randomly
         tryMove(randomDirection())
