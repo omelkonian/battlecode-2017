@@ -1,10 +1,13 @@
 package units
 
 import java.lang.Math
+import javax.print.attribute.standard.Destination
 
 import battlecode.common._
 import battlecode.common.RobotType._
+import com.sun.xml.internal.ws.handler.HandlerProcessor
 import utils.Movement._
+
 
 /**
   * Default scout unit.
@@ -13,7 +16,6 @@ import utils.Movement._
 class ShadowScout extends RobotUnit {
 
   private var lastDirection = 0.0;
-
 
 
   @throws(classOf[GameActionException])
@@ -34,30 +36,15 @@ class ShadowScout extends RobotUnit {
 
       //Broadcast the first of them
       //Didn't broadcast because of cpu problems on this.
-     /* rc.broadcast(2, robots(0).location.x.toInt);
+      /* rc.broadcast(2, robots(0).location.x.toInt);
       rc.broadcast(3, robots(0).location.y.toInt);*/
 
 
 
-      //Go one level inside in the circle
-      if(lastDirection%2*Math.PI==0) {
-        lastDirection+=Math.PI/2;
-        tryMove(new Direction(lastDirection.toFloat));
-        lastDirection-=Math.PI/2;
-      }
-
-      //Circular movement one the grid
-      if (rc.canMove(new Direction(lastDirection.toFloat))) {
-        tryMove(new Direction(lastDirection.toFloat));
-      } else {
-        lastDirection+=Math.PI/2;
-        if (rc.canMove(new Direction(lastDirection.toFloat))) {
-          tryMove(new Direction(lastDirection.toFloat));
-        } else {
-          lastDirection+=Math.PI/2;
-          tryMove(new Direction(lastDirection.toFloat));
-        }
-      }
+      scanQuarter(0, 0, rc)
+      scanQuarter(0, 1, rc)
+      scanQuarter(1, 1, rc)
+      scanQuarter(1, 0, rc)
 
       // Clock.yield() makes the robot wait until the next turn, then it will perform this loop again
       Clock.`yield`()
@@ -68,5 +55,74 @@ class ShadowScout extends RobotUnit {
         e.printStackTrace()
     }
   }
+
+
+  def scanQuarter(quarterX: Float, quarterY: Float, rc: RobotController): Unit = {
+    var quarterBottomLeft: MapLocation = new MapLocation((quarterX * (GameConstants.MAP_MAX_WIDTH / 2)), quarterY * (GameConstants.MAP_MAX_HEIGHT / 2));
+    var quarterBottomRight: MapLocation= new MapLocation((quarterX*(GameConstants.MAP_MAX_WIDTH/2)+(GameConstants.MAP_MAX_WIDTH/2)),quarterY*(GameConstants.MAP_MAX_HEIGHT/2));
+    var quarterTopLeft: MapLocation= new MapLocation((quarterX*(GameConstants.MAP_MAX_WIDTH/2)),quarterY*(GameConstants.MAP_MAX_HEIGHT/2)+(GameConstants.MAP_MAX_HEIGHT/2));
+    var quarterTopRight: MapLocation= new MapLocation((quarterX*(GameConstants.MAP_MAX_WIDTH/2)+(GameConstants.MAP_MAX_WIDTH/2)),quarterY*(GameConstants.MAP_MAX_HEIGHT/2)+(GameConstants.MAP_MAX_HEIGHT/2));
+
+
+    while(rc.getLocation.compareTo(quarterBottomLeft)!=0) {
+      try {
+        rc.move(quarterBottomLeft);
+      } catch {
+        case e: GameActionException =>
+          System.out.println("ShadowScout Exception")
+          e.printStackTrace()
+      }
+    }
+
+    quarterBottomLeft = new MapLocation(quarterBottomLeft.x,quarterBottomLeft.y + SCOUT.sensorRadius)
+
+
+    while(rc.getLocation.y>=quarterTopLeft.y) {
+
+      while(rc.getLocation.compareTo(quarterBottomRight)!=0) {
+
+        try {
+          rc.move(quarterBottomRight);
+        } catch {
+          case e: GameActionException =>
+            System.out.println("ShadowScout Exception")
+            e.printStackTrace()
+        }
+      }
+
+      quarterBottomRight = new MapLocation(quarterBottomRight.x,quarterBottomRight.y + SCOUT.sensorRadius)
+
+      try {
+        rc.move(quarterBottomRight);
+      } catch {
+        case e: GameActionException =>
+          System.out.println("ShadowScout Exception")
+          e.printStackTrace()
+      }
+
+      while(rc.getLocation.compareTo(quarterBottomLeft)!=0) {
+        try {
+          rc.move(quarterBottomLeft);
+        } catch {
+          case e: GameActionException =>
+            System.out.println("ShadowScout Exception")
+            e.printStackTrace()
+        }
+      }
+
+      try {
+        rc.move(quarterBottomLeft);
+      } catch {
+        case e: GameActionException =>
+          System.out.println("ShadowScout Exception")
+          e.printStackTrace()
+      }
+      rc.move(quarterBottomLeft);
+    }
+
+  }
+
+
+
 
 }
