@@ -51,7 +51,7 @@ class ShadowScout extends RobotUnit {
     var quarterTopLeft: MapLocation= new MapLocation((quarterX*(GameConstants.MAP_MAX_WIDTH/2)),quarterY*(GameConstants.MAP_MAX_HEIGHT/2)+(GameConstants.MAP_MAX_HEIGHT/2));
     var quarterTopRight: MapLocation= new MapLocation((quarterX*(GameConstants.MAP_MAX_WIDTH/2)+(GameConstants.MAP_MAX_WIDTH/2)),quarterY*(GameConstants.MAP_MAX_HEIGHT/2)+(GameConstants.MAP_MAX_HEIGHT/2));
 
-    var quarterEnemyId =Set();
+    var quarterEnemyId = scala.collection.mutable.Set[String]();
     var robots: Array[RobotInfo]= Array();
 
     while(rc.getLocation.compareTo(quarterBottomLeft)!=0) {

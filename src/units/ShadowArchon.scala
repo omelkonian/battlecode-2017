@@ -20,8 +20,6 @@ class ShadowArchon extends RobotUnit {
         rc.hireGardener(dir)
 
 
-      var quarterEnemyCount: Array[Int]= Array(4);
-
       var minEnemyCount = 0;
       var minEnemyCountQuarter = -1;
       for(i <-0 to 3) {
@@ -30,17 +28,12 @@ class ShadowArchon extends RobotUnit {
         }
       }
       goToQuarter(minEnemyCountQuarter, rc);
-     val firstQuarterEnemyCount = rc.readBroadcast(0)
-      rc.readBroadcast(1)
-      rc.readBroadcast(2)
-      rc.readBroadcast(3)
-      // Move randomly
-      tryMove(randomDirection())
+
 
       // Broadcast archon's location for other robots on the team to know
       val myLocation: MapLocation = rc.getLocation
-      rc.broadcast(0, myLocation.x.toInt)
-      rc.broadcast(1, myLocation.y.toInt)
+      rc.broadcast(4, myLocation.x.toInt)
+      rc.broadcast(5, myLocation.y.toInt)
 
       // Clock.yield() makes the robot wait until the next turn, then it will perform this loop again
       Clock.`yield`()

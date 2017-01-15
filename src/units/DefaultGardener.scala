@@ -13,8 +13,8 @@ class DefaultGardener extends RobotUnit {
   override def runStep()(implicit rc: RobotController): Unit = {
     try {
       // Listen for home archon's location
-      val xPos: Int = rc.readBroadcast(0)
-      val yPos: Int = rc.readBroadcast(1)
+      val xPos: Int = rc.readBroadcast(4)
+      val yPos: Int = rc.readBroadcast(5)
       val archonLoc: MapLocation = new MapLocation(xPos,yPos)
 
       // Generate a random direction
