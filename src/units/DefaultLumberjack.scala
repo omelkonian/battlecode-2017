@@ -16,11 +16,11 @@ class DefaultLumberjack extends RobotUnit {
   override def run(): Unit = {
     enemy = I.getTeam.opponent()
     while (true)
-      runTurn()
+      runStep()
   }
 
   @throws(classOf[GameActionException])
-  def runTurn(): Unit = {
+  def runStep(): Unit = {
     try {
       // See if there are any enemy robots within striking range (distance 1 from lumberjack's radius)
       var robots: Array[RobotInfo] = I.senseNearbyRobots(LUMBERJACK.bodyRadius + LUMBERJACK_STRIKE_RADIUS, enemy)

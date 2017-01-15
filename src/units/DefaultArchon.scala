@@ -1,4 +1,5 @@
 package units
+
 import battlecode.common._
 import utils.Movement.{randomDirection, tryMove}
 import utils.Current.I
@@ -9,7 +10,7 @@ import utils.Current.I
 class DefaultArchon extends RobotUnit {
 
   @throws(classOf[GameActionException])
-  override def runTurn(): Unit = {
+  override def runStep(): Unit = {
     try {
       // Generate a random direction
       val dir: Direction = randomDirection()

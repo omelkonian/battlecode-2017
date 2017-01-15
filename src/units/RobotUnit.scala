@@ -14,7 +14,7 @@ trait RobotUnit {
       try {
         if (I.getTeamBullets >= BULLETS_TO_WIN)
           I donate BULLETS_TO_WIN
-        runTurn()
+        runStep()
       } catch {
         case e: Exception =>
           System.out.println("GameException")
@@ -24,5 +24,5 @@ trait RobotUnit {
   }
 
   @throws(classOf[GameActionException])
-  def runTurn(): Unit
+  def runStep(): Unit
 }

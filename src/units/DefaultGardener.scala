@@ -1,4 +1,5 @@
 package units
+
 import battlecode.common._
 import battlecode.common.RobotType._
 import utils.Movement.{tryMove, randomDirection}
@@ -10,11 +11,11 @@ import utils.Current.I
 class DefaultGardener extends RobotUnit {
 
   @throws(classOf[GameActionException])
-  override def runTurn(): Unit = {
+  override def runStep(): Unit = {
     try {
       // Listen for home archon's location
-      val xPos: Int = I.readBroadcast(0)
-      val yPos: Int = I.readBroadcast(1)
+      val xPos: Int = I.readBroadcast(4)
+      val yPos: Int = I.readBroadcast(5)
       val archonLoc: MapLocation = new MapLocation(xPos,yPos)
 
       // Generate a random direction

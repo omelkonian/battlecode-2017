@@ -19,7 +19,7 @@ class Farmer extends RobotUnit {
   val FARM_RADIUS = 4
 
   @throws(classOf[GameActionException])
-  override def runTurn(): Unit = {
+  override def runStep(): Unit = {
     // Find farm location
     System.out.println("Finding farm location...")
     findFarmLocation()

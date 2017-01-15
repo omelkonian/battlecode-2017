@@ -14,11 +14,11 @@ class DefaultSoldier extends RobotUnit {
   override def run(): Unit = {
     enemy = I.getTeam.opponent()
     while (true)
-      runTurn()
+      runStep()
   }
 
   @throws(classOf[GameActionException])
-  def runTurn(): Unit = {
+  def runStep(): Unit = {
     val enemy: Team = I.getTeam.opponent()
       try {
         // See if there are any nearby enemy robots
