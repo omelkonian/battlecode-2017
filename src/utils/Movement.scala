@@ -1,6 +1,7 @@
 package utils
-
-import battlecode.common.{Direction, GameActionException, RobotController}
+import battlecode.common.{Clock, Direction, GameActionException}
+import utils.Execution.waitAndThen
+import utils.Current.I
 
 /**
   * Movement utilities.
@@ -14,6 +15,43 @@ object Movement {
     new Direction((math.random * 2.0 * math.Pi).toFloat)
 
   /**
+    * Wanders around with a specific strategy until a condition is met.
+    * @param condition the condition to satisfy
+    * @param nextDirection wandering strategy
+    */
+  def wanderUntil(condition: () => Boolean, nextDirection: () => Direction): Unit =
+    while (!condition()) {
+      tryMove(nextDirection())
+      Clock.`yield`()
+    }
+
+
+  /**
+    * Moves to a single direction, skipping turns if necessary.
+    * @param dir the direction to move
+    */
+  def waitMove(dir: Direction, distance: Float = -1): Unit =
+    if (distance > 1) { // multiple strides
+      val moves = (distance / I.getType.strideRadius).toInt
+      val rest = distance - moves
+      for (_ <- 0 until moves)
+        waitMove(dir)
+      if (rest > 0)
+        waitMove(dir, distance - moves)
+    }
+    else if (distance != 0)// single stride
+      waitAndThen(
+        () => !I.hasMoved && I.canMove(dir, distance),
+        () => I.move(dir, if (distance != -1) distance else I.getType.strideRadius)
+      )
+/*      waitAndThen[Unit](
+        condition = _ => !I.hasMoved && I.canMove(dir, distance),
+        action = _ => I.move(dir, if (distance != -1) distance else I.getType.strideRadius),
+        variance = _ => (),
+        init = ()
+      )*/
+
+  /**
     * Attempts to move in a given direction, while avoiding small obstacles directly in the path.
     *
     * @param dir The intended direction of movement
@@ -21,7 +59,7 @@ object Movement {
     * @throws GameActionException
     */
   @throws(classOf[GameActionException])
-  def tryMove(dir: Direction)(implicit rc: RobotController): Boolean =
+  def tryMove(dir: Direction): Boolean =
     tryMove(dir,20,3)
 
   /**
@@ -34,11 +72,11 @@ object Movement {
     * @throws GameActionException
     */
   @throws(classOf[GameActionException])
-  def tryMove(dir: Direction, degreeOffset: Float, checksPerSide: Int)(implicit rc: RobotController): Boolean = {
+  def tryMove(dir: Direction, degreeOffset: Float, checksPerSide: Int): Boolean = {
 
     // First, try intended direction
-    if (rc.canMove(dir)) {
-      rc.move(dir)
+    if (I.canMove(dir)) {
+      I.move(dir)
       return true
     }
 
@@ -47,13 +85,13 @@ object Movement {
 
     while(currentCheck <= checksPerSide) {
       // Try the offset of the left side
-      if(rc.canMove(dir.rotateLeftDegrees(degreeOffset*currentCheck))) {
-        rc.move(dir.rotateLeftDegrees(degreeOffset*currentCheck))
+      if(I.canMove(dir.rotateLeftDegrees(degreeOffset*currentCheck))) {
+        I.move(dir.rotateLeftDegrees(degreeOffset*currentCheck))
         return true
       }
       // Try the offset on the right side
-      if(rc.canMove(dir.rotateRightDegrees(degreeOffset*currentCheck))) {
-        rc.move(dir.rotateRightDegrees(degreeOffset*currentCheck))
+      if(I.canMove(dir.rotateRightDegrees(degreeOffset*currentCheck))) {
+        I.move(dir.rotateRightDegrees(degreeOffset*currentCheck))
         return true
       }
       // No move performed, try slightly further

@@ -1,6 +1,6 @@
 package utils
-
-import battlecode.common.{BulletInfo, Direction, MapLocation, RobotController}
+import battlecode.common.{BulletInfo, Direction, MapLocation}
+import utils.Current.I
 
 /**
   * Collision utilities.
@@ -14,8 +14,8 @@ object Collision {
     * @param bullet The bullet in question
     * @return True if the line of the bullet's path intersects with this robot's current position.
     */
-  def willCollideWithMe(bullet: BulletInfo)(implicit rc: RobotController): Boolean = {
-    val myLocation: MapLocation = rc.getLocation
+  def willCollideWithMe(bullet: BulletInfo): Boolean = {
+    val myLocation: MapLocation = I.getLocation
 
     // Get relevant bullet information
     val propagationDirection: Direction = bullet.dir
@@ -36,6 +36,6 @@ object Collision {
     // line that is the path of the bullet.
     val perpendicularDist: Float = math.abs(distToRobot * Math.sin(theta)).toFloat // soh cah toa :)
 
-    perpendicularDist <= rc.getType.bodyRadius
+    perpendicularDist <= I.getType.bodyRadius
   }
 }
