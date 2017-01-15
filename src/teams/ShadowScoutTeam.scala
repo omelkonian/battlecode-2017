@@ -11,7 +11,7 @@ class ShadowScoutTeam extends RobotTeam {
   @throws(classOf[GameActionException])
   override def run(implicit rc: RobotController): Unit =
     rc.getType match {
-      case ARCHON => new DefaultArchon().run()
+      case ARCHON => new ShadowArchon().run()
       case GARDENER => new ShadowGardener().run()
       case SOLDIER => new DefaultSoldier().run()
       case LUMBERJACK => new DefaultLumberjack().run()

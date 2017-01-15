@@ -28,20 +28,6 @@ class ShadowScout extends RobotUnit {
   override def runStep()(implicit rc: RobotController): Unit = {
     try {
 
-      val myLocation: MapLocation = rc.getLocation;
-
-      val enemy: Team = rc.getTeam.opponent()
-      //Find enemy robots
-      val robots: Array[RobotInfo] = rc.senseNearbyRobots(SCOUT.sensorRadius, enemy)
-
-      //Broadcast the first of them
-      //Didn't broadcast because of cpu problems on this.
-      /* rc.broadcast(2, robots(0).location.x.toInt);
-      rc.broadcast(3, robots(0).location.y.toInt);*/
-
-
-
-
       rc.broadcast(0,scanQuarter(0, 0, rc));
       rc.broadcast(1,scanQuarter(0, 1, rc));
       rc.broadcast(2,scanQuarter(1, 1, rc));
@@ -66,7 +52,7 @@ class ShadowScout extends RobotUnit {
     var quarterTopRight: MapLocation= new MapLocation((quarterX*(GameConstants.MAP_MAX_WIDTH/2)+(GameConstants.MAP_MAX_WIDTH/2)),quarterY*(GameConstants.MAP_MAX_HEIGHT/2)+(GameConstants.MAP_MAX_HEIGHT/2));
 
     var quarterEnemyId =Set();
-    var robots: Array[RobotInfo];
+    var robots: Array[RobotInfo]= Array();
 
     while(rc.getLocation.compareTo(quarterBottomLeft)!=0) {
       try {
