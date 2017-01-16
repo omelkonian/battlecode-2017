@@ -5,7 +5,7 @@ import utils.Movement.{tryMove, waitMove, wanderUntil}
 import utils.Execution.endlessly
 import utils.Winning.tryInstantWin
 import utils.Farming.{waitPlant, waitWater}
-import utils.Pathfinding.moveAwayFromObstacles
+//import utils.Pathfinding.moveAwayFromObstacles
 import utils.Constants._
 
 /**
@@ -48,7 +48,8 @@ class Farmer extends RobotUnit {
     while (
       !I.onTheMap(Here, FARM_RADIUS) || I.isCircleOccupiedExceptByThisRobot(Here, FARM_RADIUS)
     )
-      tryMove(moveAwayFromObstacles())
+      System.out.println()
+//    tryMove(moveAwayFromObstacles())
     /*wanderUntil(
       condition = () =>
         !I.onTheMap(Here, FARM_RADIUS) || I.isCircleOccupiedExceptByThisRobot(Here, FARM_RADIUS),
@@ -65,4 +66,6 @@ class Farmer extends RobotUnit {
       action(actionDir)
       waitMove(moveDir)
     }
+
+  def sense[T](source: List[BodyInfo]): List[Int] = source.map(_ => 1)
 }

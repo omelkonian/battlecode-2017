@@ -1,7 +1,7 @@
 package utils
 
 import battlecode.common.{Direction, MapLocation}
-import utils.Execution.waitAndThen
+import utils.Execution._
 import utils.Movement.waitMove
 import utils.Current.{I, Here}
 
@@ -37,16 +37,12 @@ object Farming {
     */
   def waitPlant(dir: Direction, offset: Float = 0): Unit = {
     waitMove(dir, offset)
-    waitAndThen(
-      () => I canPlantTree dir,
-      () => I plantTree dir
-    )
-/*    waitAndThen[Direction](
+    waitAndThen2[Direction](
       condition = I canPlantTree _,
       action = I plantTree _,
       variance = d => d,
       init = dir
-    )*/
+    )
     waitMove(dir.opposite(), offset)
   }
 }

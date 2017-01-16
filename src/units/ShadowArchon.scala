@@ -1,9 +1,9 @@
 package units
 
-import battlecode.common.RobotType._
 import battlecode.common._
 import utils.Movement.{randomDirection, tryMove}
 import utils.Current.I
+import utils.EnrichedRC
 
 /**
   * Default archon unit.
@@ -46,7 +46,7 @@ class ShadowArchon extends RobotUnit {
     }
   }
 
-  def goToQuarter(quarterNumber: Int, rc: RobotController): Unit = {
+  def goToQuarter(quarterNumber: Int, rc: EnrichedRC): Unit = {
 
     var quarterX: Int =0;
     var quarterY: Int =0;

@@ -3,8 +3,9 @@ package utils
 import battlecode.common.{Direction, RobotType}
 import battlecode.common.RobotType.{GARDENER, ARCHON}
 import utils.Current.{I, AmI}
-import utils.Execution.waitAndThen
+import utils.Execution._
 import utils.Movement.randomDirection
+import java.lang.RuntimeException
 
 /**
   * Building utilities.
@@ -21,31 +22,16 @@ object Building {
                 dir: Direction = randomDirection(),
                 vary: Direction => Direction = _ => randomDirection()): Unit = {
     robotType match {
-      case GARDENER =>
-        assert(AmI(ARCHON))
-        waitAndThen(
-          () => I canHireGardener dir,
-          () => I hireGardener dir
-        )
-/*        waitAndThen[Direction](
-          condition = I canHireGardener _,
-          action = I hireGardener _,
-          variance = vary,
-          init = dir
-        )*/
-      case _ =>
-        assert(AmI(GARDENER))
-        waitAndThen(
-          () => I canBuildRobot (robotType, dir),
-          () => I buildRobot (robotType, dir)
-        )
-/*        waitAndThen[Direction](
-          condition = I canBuildRobot (robotType, _),
-          action = I buildRobot (robotType, _),
-          variance = vary,
-          init = dir
-        )*/
-
+      case ARCHON => throw new RuntimeException("Cannot build Archon")
+      case GARDENER => assert(AmI(ARCHON))
+      case _ => assert(AmI(GARDENER))
     }
+    waitAndThen2[Direction](
+      condition = I canBuildRobot (robotType, _),
+      action = I buildRobot (robotType, _),
+      variance = vary,
+      init = dir
+    )
   }
+
 }

@@ -19,4 +19,8 @@ public class Constants {
     // Victory
     public static float BULLETS_TO_WIN =
             GameConstants.VICTORY_POINTS_TO_WIN * GameConstants.BULLET_EXCHANGE_RATE;
+
+    // PI
+    public static float PI = (float) Math.PI;
+    public static float PI_2 = PI / 2;
 }

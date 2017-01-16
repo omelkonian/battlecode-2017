@@ -16,7 +16,7 @@ object Execution {
   /**
     * Skips turns until given condition is true and then executes some action.
     */
-/*  def waitAndThen2[T](init: T,
+  def waitAndThen2[T](init: T,
                       condition: T => Boolean,
                       action: T => Unit,
                       variance: T => T): Unit = {
@@ -26,7 +26,7 @@ object Execution {
       Clock.`yield`()
     }
     action(current)
-  }*/
+  }
 
   def waitAndThen(condition: () => Boolean, action: () => Unit): Unit = {
     while (!condition())

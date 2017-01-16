@@ -4,7 +4,7 @@ import java.util
 import java.util.{Collections, Random}
 
 import battlecode.common._
-import utils.Dir
+import utils.{Dir, EnrichedRC}
 import utils.Movement.tryMove
 import utils.Current.I
 
@@ -12,7 +12,7 @@ import utils.Current.I
   * Default tank unit.
   */
 class StupidTank extends RobotUnit {
-  def getOpponentDir(rc : RobotController): Direction = {
+  def getOpponentDir(rc : EnrichedRC): Direction = {
     return Direction.getEast
   }
 

@@ -9,6 +9,8 @@ import utils.Building.waitBuild
   */
 abstract class SingleRobotTeam(robotType: RobotType) extends RobotTeam {
 
+  def runSingle(): Unit
+
   @throws(classOf[GameActionException])
   override def run(): Unit = {
     robotType match {
@@ -32,8 +34,6 @@ abstract class SingleRobotTeam(robotType: RobotType) extends RobotTeam {
         }
     }
   }
-
-  def runSingle(): Unit
 
   private def archonSpawnSingleGardener(): Unit =
     if (I.readBroadcast(0) == 0) {

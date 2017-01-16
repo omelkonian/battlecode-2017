@@ -3,6 +3,7 @@ package units
 import battlecode.common._
 import battlecode.common.RobotType._
 import utils.Current.I
+import utils.EnrichedRC
 
 /**
   * Default scout unit.
@@ -30,7 +31,7 @@ class ShadowScout extends RobotUnit {
   }
 
 
-  def scanQuarter(quarterX: Float, quarterY: Float, rc: RobotController): Int = {
+  def scanQuarter(quarterX: Float, quarterY: Float, rc: EnrichedRC): Int = {
     val enemy: Team = rc.getTeam.opponent()
     var quarterBottomLeft: MapLocation = new MapLocation((quarterX * (GameConstants.MAP_MAX_WIDTH / 2)), quarterY * (GameConstants.MAP_MAX_HEIGHT / 2));
     var quarterBottomRight: MapLocation= new MapLocation((quarterX*(GameConstants.MAP_MAX_WIDTH/2)+(GameConstants.MAP_MAX_WIDTH/2)),quarterY*(GameConstants.MAP_MAX_HEIGHT/2));
