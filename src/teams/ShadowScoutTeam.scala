@@ -8,6 +8,6 @@ import units._
   */
 class ShadowScoutTeam extends SingleRobotTeam(SCOUT) {
   override def runSingle(): Unit = {
-    new ShadowScout().run()
+    new CornerMaster().run()
   }
 }
