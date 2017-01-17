@@ -7,5 +7,5 @@ import teams.*;
  */
 public class Config {
     public static RobotTeam Player1 = new ShadowScoutTeam();
-    public static RobotTeam Player2 = new IdleTeam();
+    public static RobotTeam Player2 = new DefaultTeam();
 }

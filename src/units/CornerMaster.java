@@ -3,7 +3,12 @@ package units;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
+import battlecode.common.RobotInfo;
+import scala.tools.cmd.gen.AnyVals;
 import utils.Constants;
+import utils.Current;
+import utils.Dir;
+import utils.MapPiece;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,27 +19,37 @@ import static battlecode.common.RobotType.SCOUT;
  * Created by gdimopou on 16/01/2017.
  */
 public class CornerMaster implements RobotUnit {
-
-    private HashMap<Integer,MapLocation> horizontalSide = null;
-    private HashMap<Integer,MapLocation> verticalSide = null;
+    private HashMap<Integer,MapLocation> eastSide = null;
+    private HashMap<Integer,MapLocation> westSide = null;
+    private HashMap<Integer,MapLocation> northSide = null;
+    private HashMap<Integer,MapLocation> southSide = null;
     private HashMap<Integer,Direction> assignedDirections = null;
+    private HashMap<Direction,Float> limits;
     private ArrayList<Direction> directionsToCheck = null;
-    private HashMap<Integer, MapLocation> corners = null;
-    private Integer directionsBeenAssigned;
+    private HashMap<Direction, MapLocation> corners = null;
+    private Float turnStrideRadiusLeft;
+    private MapLocation archonLocation;
+    private MapPiece [][] quarters;
+    private HashMap<Integer, RobotInfo> robotsSeen;
+
 
     @Override
     public void run() throws GameActionException {
-        horizontalSide = new HashMap<Integer,MapLocation>();
-        verticalSide = new HashMap<Integer,MapLocation>();
+        quarters = new MapPiece[2][2];
+        archonLocation = utils.Current.I.getLocation();
+        robotsSeen = new HashMap<Integer, RobotInfo>();
+        limits = new HashMap<Direction, Float>();
+        eastSide = new HashMap<Integer,MapLocation>();
+        westSide = new HashMap<Integer,MapLocation>();
+        northSide = new HashMap<Integer,MapLocation>();
+        southSide = new HashMap<Integer,MapLocation>();
         assignedDirections = new HashMap<Integer,Direction>();
-        corners = new HashMap<Integer, MapLocation>() ;
+        corners = new HashMap<Direction, MapLocation>() ;
         directionsToCheck = new ArrayList<Direction>();
         directionsToCheck.add(Direction.getEast());
         directionsToCheck.add(Direction.getNorth());
         directionsToCheck.add(Direction.getWest());
         directionsToCheck.add(Direction.getSouth());
-        System.out.println(directionsToCheck.toString());
-        directionsBeenAssigned = 0;
         while (true)    {
             try {
                 if (utils.Current.I.getTeamBullets() >= Constants.BULLETS_TO_WIN) {
@@ -52,52 +67,152 @@ public class CornerMaster implements RobotUnit {
 
     @Override
     public void runStep() throws GameActionException {
-        Integer scoutNumber = 0;
+        turnStrideRadiusLeft = SCOUT.strideRadius;
         if(!assignedDirections.keySet().contains(utils.Current.I.getID())) {
-            if(directionsBeenAssigned<4) {
-                assignedDirections.put(utils.Current.I.getID(), directionsToCheck.get(directionsBeenAssigned));
+            if(directionsToCheck.size()>0) {
+                assignedDirections.put(utils.Current.I.getID(), directionsToCheck.get(0));
             }
-            System.out.println("SCOUT WITH ID "+utils.Current.I.getID()+" HAS DIRECTION TO "+assignedDirections.get(utils.Current.I.getID()));
-            directionsBeenAssigned++;
         }
-        MapLocation corner = checkForCorner(assignedDirections.get(utils.Current.I.getID()));
-        if(corner !=null) {
-            System.out.println("CORNER FOUND "+corner.x+","+corner.y);
-            corners.put(utils.Current.I.getID(), corner);
-            verticalSide.put(utils.Current.I.getID(), null);
-            horizontalSide.put(utils.Current.I.getID(), null);
-            if(directionsBeenAssigned<4) {
-                assignedDirections.put(utils.Current.I.getID(), directionsToCheck.get(directionsBeenAssigned));
+        checkForCorner(assignedDirections.get(utils.Current.I.getID()));
+        if(limits.keySet().size()==4) {
+           // writeCornersOnConsole();
+            constuctCorners();
+            findQuarters();
+            announceTownLocation();
+            utils.Current.I.resign();
+        }
+
+        if(southSide.get(utils.Current.I.getID())!=null) {
+            limits.put(Direction.getSouth(), southSide.get(utils.Current.I.getID()).y);
+            directionsToCheck.remove(Direction.getSouth());
+            if(directionsToCheck.size()>0) {
+                assignedDirections.put(utils.Current.I.getID(), directionsToCheck.get(0));
+            }
+        }
+        if( eastSide.get(utils.Current.I.getID())!=null) {
+            limits.put(Direction.getEast(), eastSide.get(utils.Current.I.getID()).x);
+            directionsToCheck.remove(Direction.getEast());
+            if(directionsToCheck.size()>0) {
+                assignedDirections.put(utils.Current.I.getID(), directionsToCheck.get(0));
             }
         }
 
-        if(verticalSide.get(utils.Current.I.getID())!=null) {
-            if(directionsBeenAssigned<4) {
-                assignedDirections.put(utils.Current.I.getID(), directionsToCheck.get(directionsBeenAssigned));
-            }
-        }
-        if( horizontalSide.get(utils.Current.I.getID())!=null) {
-            if(directionsBeenAssigned<4) {
-                assignedDirections.put(utils.Current.I.getID(), directionsToCheck.get(directionsBeenAssigned));
+        if( northSide.get(utils.Current.I.getID())!=null) {
+            limits.put(Direction.getNorth(), northSide.get(utils.Current.I.getID()).y);
+            directionsToCheck.remove(Direction.getNorth());
+            if(directionsToCheck.size()>0) {
+                assignedDirections.put(utils.Current.I.getID(), directionsToCheck.get(0));
             }
         }
 
-        tryMove(assignedDirections.get(utils.Current.I.getID()),0);
+        if( westSide.get(utils.Current.I.getID())!=null) {
+            limits.put(Direction.getWest(), westSide.get(utils.Current.I.getID()).x);
+            directionsToCheck.remove(Direction.getWest());
+            if(directionsToCheck.size()>0) {
+                assignedDirections.put(utils.Current.I.getID(), directionsToCheck.get(0));
+            }
+        }
+
+        tryMoveAndScout(assignedDirections.get(utils.Current.I.getID()),0);
+    }
+
+    private void announceTownLocation() {
+        for(int i=0 ; i <=1; i++) {
+            for(int j =0 ; j<=1 ; j++) {
+                if(quarters[i][j].isOnMapPiece(archonLocation)) {
+                    logCornerMasterReport(i, j);
+                    try {
+                        Current.I.broadcast(0,i);
+                        Current.I.broadcast(1,j);
+                    } catch (GameActionException e) {
+                    }
+                }
+            }
+        }
+    }
+
+    private void logCornerMasterReport(int i, int j) {
+        System.out.println("");
+        System.out.println("");
+        System.out.println("-CORNER MASTER REPORT-");
+        System.out.println("Town Center Quarter Position: ("+i+" ,"+j+")");
+        System.out.println("");
+        System.out.println("Town Center Quarter Exact Position");
+        System.out.println("----------------------------------");
+        System.out.println(quarters[i][j].toString());
+        System.out.println("----------------------------------");
+        System.out.println("");
+        System.out.println("Safest place to be:"+ computeSafestPlaceOfQuarter(quarters[i][j]).toString());
+        printEnemyLog();
     }
 
 
-    private void tryMove(Direction direction,Integer tries) {
-        if(tries>=3) return;
-        System.out.println("Try :"+tries);
-        if(utils.Current.I.canMove(direction)) {
+    private MapLocation computeSafestPlaceOfQuarter(MapPiece mapPiece) {
+        for(MapLocation corner: corners.values()) {
+            if(mapPiece.getBottomLeft().equals(corner) || mapPiece.getBottomRight().equals(corner) ||
+                    mapPiece.getTopLeft().equals(corner) || mapPiece.getTopRight().equals(corner)) {
+                return corner;
+            }
+        }
+        return null;
+    }
+
+    private void writeCornersOnConsole() {
+        System.out.println("Found corners of the map");
+        System.out.println("------------------------");
+        System.out.println("NE: ("+limits.get(Direction.getEast())+", "+limits.get(Direction.getNorth())+")");
+        System.out.println("SE: ("+limits.get(Direction.getEast())+", "+limits.get(Direction.getSouth())+")");
+        System.out.println("SW: ("+limits.get(Direction.getWest())+", "+limits.get(Direction.getSouth())+")");
+        System.out.println("NW: ("+limits.get(Direction.getWest())+", "+limits.get(Direction.getNorth())+")");
+    }
+
+    private void findQuarters() {
+        for(int i=0 ; i <=1; i++) {
+            for(int j =0 ; j<=1 ; j++) {
+                Float westest = limits.get(Direction.getWest());
+                Float eastest = limits.get(Direction.getEast());
+                Float southest = limits.get(Direction.getSouth());
+                Float northest = limits.get(Direction.getNorth());
+
+                Float xStep = (eastest-westest)/2;
+                Float yStep = (northest-southest)/2;
+
+                MapLocation bottomLeft = new MapLocation(westest+i*xStep,southest+j*yStep);
+                MapLocation bottomRight = new MapLocation(westest+xStep+i*xStep,southest+j*yStep);
+                MapLocation topLeft = new MapLocation(westest+i*xStep,southest + yStep + j*yStep);
+                MapLocation topRight = new MapLocation(westest+xStep+i*xStep,southest + yStep + j*yStep);
+
+                quarters[i][j] = new MapPiece(bottomRight,bottomLeft, topRight, topLeft);
+                organiseEnemiesInQuarters(quarters[i][j]);
+            }
+        }
+    }
+
+    private void organiseEnemiesInQuarters(MapPiece mapPiece) {
+        for(RobotInfo robotInfo: robotsSeen.values()) {
+            if(mapPiece.isOnMapPiece(robotInfo.location)) {
+                mapPiece.getRobots().add(robotInfo);
+            }
+        }
+        for(RobotInfo robotInfo: mapPiece.getRobots()) {
+            robotsSeen.remove(robotInfo.getID());
+        }
+    }
+
+
+    private void tryMoveAndScout(Direction direction,Integer tries) {
+        if(tries>=10) return;
+        if(utils.Current.I.canMove(direction) && turnStrideRadiusLeft>0) {
+
             try {
+                scoutEnemiesAround();
                 utils.Current.I.move(direction);
+                turnStrideRadiusLeft = (float)0;
             } catch (GameActionException e) {
-                e.printStackTrace();
             }
         } else {
             direction = new Direction((float) (direction.radians + Math.pow(-1,tries%2)*(Math.PI/4)*(tries+1)));
-            tryMove(direction, ++tries);
+            tryMoveAndScout(direction, ++tries);
         }
     }
 
@@ -109,20 +224,26 @@ public class CornerMaster implements RobotUnit {
         MapLocation mapLocationHorizontal = checkForSide(directions[0]);
         MapLocation mapLocationVertical = checkForSide(directions[1]);
 
-        if(mapLocationHorizontal !=null) {
-            System.out.println("Found Horizontal:"+ mapLocationHorizontal.x+","+mapLocationHorizontal.y);
-            horizontalSide.put(utils.Current.I.getID(), mapLocationHorizontal);
+
+        if(directions[0].equals(Direction.getEast())) {
+            if(mapLocationHorizontal !=null) {
+                eastSide.put(utils.Current.I.getID(), mapLocationHorizontal);
+            }
+        } else if(directions[0].equals(Direction.getWest())) {
+            if(mapLocationHorizontal !=null) {
+                westSide.put(utils.Current.I.getID(), mapLocationHorizontal);
+            }
         }
 
-        if(mapLocationVertical !=null){
-            System.out.println("Found Vertical:"+ mapLocationVertical.x+","+mapLocationVertical.y);
-            verticalSide.put(utils.Current.I.getID(), mapLocationVertical);
+        if(directions[1].equals(Direction.getSouth())) {
+            if(mapLocationVertical !=null) {
+                southSide.put(utils.Current.I.getID(), mapLocationVertical);
+            }
+        } else if(directions[1].equals(Direction.getNorth())) {
+            if(mapLocationVertical !=null) {
+                northSide.put(utils.Current.I.getID(), mapLocationVertical);
+            }
         }
-
-        if(verticalSide.get(utils.Current.I.getID())!=null && horizontalSide.get(utils.Current.I.getID())!=null) {
-            return compineMapLocations(mapLocationHorizontal, mapLocationVertical);
-        }
-
         return null;
     }
 
@@ -136,8 +257,7 @@ public class CornerMaster implements RobotUnit {
 
         MapLocation previousCheckingLocation = scoutLocation;
         for(int i=0;i<5;i++) {
-            System.out.println("NOW CHECKING LOCATION -> ("+checkingLocation.x+" ,"+checkingLocation.y+")");
-            checkingLocation=checkingLocation.add(direction, -1*scoutSensorRadiusStep);
+            checkingLocation=checkingLocation.subtract(direction, -1*scoutSensorRadiusStep);
             try {
                 if(!utils.Current.I.onTheMap(checkingLocation)) {
                     return previousCheckingLocation;
@@ -155,8 +275,8 @@ public class CornerMaster implements RobotUnit {
         MapLocation [] mapLocations = new MapLocation[2];
         Direction [] directions = new Direction[2];
 
-        mapLocations[0] =  new MapLocation(direction.getDeltaX(SCOUT.sensorRadius),scoutLocation.y);
-        mapLocations[1] =  new MapLocation(scoutLocation.x, direction.getDeltaY(SCOUT.sensorRadius));
+        mapLocations[0] =  new MapLocation(scoutLocation.x+direction.getDeltaX(SCOUT.sensorRadius),scoutLocation.y);
+        mapLocations[1] =  new MapLocation(scoutLocation.x,scoutLocation.y+ direction.getDeltaY(SCOUT.sensorRadius));
 
         directions[0] = new Direction(scoutLocation, mapLocations[0]);
         directions[1] = new Direction(scoutLocation, mapLocations[1]);
@@ -164,21 +284,14 @@ public class CornerMaster implements RobotUnit {
     }
 
     private MapLocation compineMapLocations(MapLocation firstMapLocation, MapLocation secondMapLocation) {
-        MapLocation scoutLocation = utils.Current.I.getLocation();
-        Direction [] directions = new Direction[2];
-        directions[0] = new Direction(scoutLocation, firstMapLocation);
-        directions[1] = new Direction(scoutLocation, secondMapLocation);
-        return scoutLocation.add(
-                compineDirections(directions[0], scoutLocation.distanceTo(firstMapLocation),directions[1],scoutLocation.distanceTo(secondMapLocation)),
-                compineDistancesOfVectors(scoutLocation.distanceTo(firstMapLocation),scoutLocation.distanceTo(secondMapLocation)));
+        MapLocation compinedMapLocation = new MapLocation(firstMapLocation.x, secondMapLocation.y);
+        return compinedMapLocation;
     }
 
 
     private Direction compineDirections(Direction firstDirection, float firstDistance, Direction secondDirection, float secondDistance) {
-
         double angleOfDirectionsInRadiants = 0;
         float radiantsOfNewDirection;
-
         if(firstDirection.radians> secondDirection.radians) {
             angleOfDirectionsInRadiants = firstDirection.radians - secondDirection.radians;
             radiantsOfNewDirection= (float) Math.atan((Math.sin(angleOfDirectionsInRadiants)*firstDistance)/ (Math.cos(angleOfDirectionsInRadiants)*firstDistance+secondDistance));
@@ -186,8 +299,8 @@ public class CornerMaster implements RobotUnit {
             angleOfDirectionsInRadiants = secondDirection.radians - firstDirection.radians ;
             radiantsOfNewDirection= (float) Math.atan((Math.sin(angleOfDirectionsInRadiants)*secondDistance)/ (Math.cos(angleOfDirectionsInRadiants)*secondDistance+firstDistance));
         }
-
-        return new Direction(radiantsOfNewDirection);
+        Direction compinedDirection = new Direction(radiantsOfNewDirection);
+        return compinedDirection;
     }
 
     private float compineDistancesOfVectors(float vectorDistanceOne, float vectorDistanceTwo) {
@@ -196,5 +309,32 @@ public class CornerMaster implements RobotUnit {
 
 
 
+    private void constuctCorners() {
+        corners.put(Dir.NE(), new MapLocation(limits.get(Direction.getEast()), limits.get(Direction.getNorth())));
+        corners.put(Dir.SE(), new MapLocation(limits.get(Direction.getEast()), limits.get(Direction.getSouth())));
+        corners.put(Dir.SW(), new MapLocation(limits.get(Direction.getWest()), limits.get(Direction.getSouth())));
+        corners.put(Dir.NW(), new MapLocation(limits.get(Direction.getWest()), limits.get(Direction.getNorth())));
+    }
+
+
+    private void scoutEnemiesAround(){
+        for(RobotInfo robot: utils.Current.I.senseNearbyRobots(Current.I.getType().sensorRadius, Current.I.getTeam().opponent())) {
+            robotsSeen.put(robot.getID(), robot);
+        }
+    }
+
+    public void printEnemyLog(){
+        System.out.println("");
+        System.out.println("Enemies scouted");
+        for(int i=0 ; i <=1; i++) {
+            for(int j =0 ; j<=1 ; j++) {
+                System.out.println("");
+                System.out.println("Enemies seen on quarter("+i+", "+j+"):");
+                for(RobotInfo robotInfo :quarters[i][j].getRobots()) {
+                    System.out.println(robotInfo.toString());
+                }
+            }
+        }
+    }
 
 }
