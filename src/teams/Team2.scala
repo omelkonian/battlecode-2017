@@ -13,10 +13,10 @@ class Team2 extends RobotTeam {
   override def run(): Unit =
     I.getType match {
       case ARCHON => new DefaultArchon().run()
-      case GARDENER => new StupidGardener().run()
+      case GARDENER => new NeutralTreeFarmer().run()
       case SOLDIER => new DefaultSoldier().run()
       case LUMBERJACK => new DefaultLumberjack().run()
-      case SCOUT => new ShadowScout().run()
+      case SCOUT => new OffensiveScout().run()
       case TANK => new StupidTank().run()
     }
 }

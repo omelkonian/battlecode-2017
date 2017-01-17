@@ -1,5 +1,5 @@
 package utils
-import battlecode.common.{Clock, Direction, GameActionException}
+import battlecode.common.{Clock, Direction, GameActionException, MapLocation}
 import utils.Execution.waitAndThen
 import utils.Current.I
 
@@ -100,5 +100,14 @@ object Movement {
 
     // A move never happened, so return false.
     false
+  }
+
+  /**
+    * Direction from current location to mapLocation
+    * @param mapLocation
+    * @return the direction
+    */
+  def curDirTo(mapLocation: MapLocation): Direction = {
+    return I.getLocation.directionTo(mapLocation)
   }
 }
