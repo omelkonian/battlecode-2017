@@ -29,10 +29,11 @@ public class CornerMaster implements RobotUnit {
         assignedDirections = new HashMap<Integer,Direction>();
         corners = new HashMap<Integer, MapLocation>() ;
         directionsToCheck = new ArrayList<Direction>();
-        directionsToCheck.add(Direction.EAST);
-        directionsToCheck.add(Direction.NORTH);
-        directionsToCheck.add(Direction.WEST);
-        directionsToCheck.add(Direction.SOUTH);
+        directionsToCheck.add(Direction.getEast());
+        directionsToCheck.add(Direction.getNorth());
+        directionsToCheck.add(Direction.getWest());
+        directionsToCheck.add(Direction.getSouth());
+        System.out.println(directionsToCheck.toString());
         directionsBeenAssigned = 0;
         while (true)    {
             try {
@@ -56,10 +57,12 @@ public class CornerMaster implements RobotUnit {
             if(directionsBeenAssigned<4) {
                 assignedDirections.put(utils.Current.I.getID(), directionsToCheck.get(directionsBeenAssigned));
             }
+            System.out.println("SCOUT WITH ID "+utils.Current.I.getID()+" HAS DIRECTION TO "+assignedDirections.get(utils.Current.I.getID()));
             directionsBeenAssigned++;
         }
         MapLocation corner = checkForCorner(assignedDirections.get(utils.Current.I.getID()));
         if(corner !=null) {
+            System.out.println("CORNER FOUND "+corner.x+","+corner.y);
             corners.put(utils.Current.I.getID(), corner);
             verticalSide.put(utils.Current.I.getID(), null);
             horizontalSide.put(utils.Current.I.getID(), null);
@@ -84,6 +87,8 @@ public class CornerMaster implements RobotUnit {
 
 
     private void tryMove(Direction direction,Integer tries) {
+        if(tries>=3) return;
+        System.out.println("Try :"+tries);
         if(utils.Current.I.canMove(direction)) {
             try {
                 utils.Current.I.move(direction);
@@ -92,7 +97,7 @@ public class CornerMaster implements RobotUnit {
             }
         } else {
             direction = new Direction((float) (direction.radians + Math.pow(-1,tries%2)*(Math.PI/4)*(tries+1)));
-            tryMove(direction, tries++);
+            tryMove(direction, ++tries);
         }
     }
 
@@ -105,11 +110,13 @@ public class CornerMaster implements RobotUnit {
         MapLocation mapLocationVertical = checkForSide(directions[1]);
 
         if(mapLocationHorizontal !=null) {
+            System.out.println("Found Horizontal:"+ mapLocationHorizontal.x+","+mapLocationHorizontal.y);
             horizontalSide.put(utils.Current.I.getID(), mapLocationHorizontal);
         }
 
         if(mapLocationVertical !=null){
-            horizontalSide.put(utils.Current.I.getID(), mapLocationVertical);
+            System.out.println("Found Vertical:"+ mapLocationVertical.x+","+mapLocationVertical.y);
+            verticalSide.put(utils.Current.I.getID(), mapLocationVertical);
         }
 
         if(verticalSide.get(utils.Current.I.getID())!=null && horizontalSide.get(utils.Current.I.getID())!=null) {
@@ -127,11 +134,12 @@ public class CornerMaster implements RobotUnit {
         MapLocation checkingLocation = scoutLocation;
 
 
-        MapLocation previousCheckingLocation = null;
-        for(int i=0;i<=5;i++) {
-            checkingLocation.add(direction, scoutSensorRadiusStep*i);
+        MapLocation previousCheckingLocation = scoutLocation;
+        for(int i=0;i<5;i++) {
+            System.out.println("NOW CHECKING LOCATION -> ("+checkingLocation.x+" ,"+checkingLocation.y+")");
+            checkingLocation=checkingLocation.add(direction, -1*scoutSensorRadiusStep);
             try {
-                if(!utils.Current.I.onTheMap(scoutLocation)) {
+                if(!utils.Current.I.onTheMap(checkingLocation)) {
                     return previousCheckingLocation;
                 }
                 previousCheckingLocation = checkingLocation;
