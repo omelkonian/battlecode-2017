@@ -89,10 +89,10 @@ idea {
 
 // Default configuration for running matches.
 if (!project.hasProperty("teamA")) {
-    ext.teamA = "example"
+    ext.teamA = "java.example"
 }
 if (!project.hasProperty("teamB")) {
-    ext.teamB = "example"
+    ext.teamB = "java.example"
 }
 if (!project.hasProperty("maps")) {
     ext.maps = "Barrier"
@@ -119,7 +119,7 @@ build.group = 'battlecode'
 build.dependsOn('unpackClient')
 
 // Another task. This one accepts three optional parameters, or "properties",
-// corresponding to the bots used by the two teams, and the map(s) used in this
+// corresponding to the bots used by the two scala.teams, and the map(s) used in this
 // game. These properties can be set in the command line with:
 // On windows:
 //   `gradlew -PteamA=<team A bot> -PteamB=<team B bot> -Pmaps=<comma
