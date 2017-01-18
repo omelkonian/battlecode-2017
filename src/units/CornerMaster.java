@@ -27,10 +27,10 @@ public class CornerMaster implements RobotUnit {
     private HashMap<Direction,Float> limits;
     private ArrayList<Direction> directionsToCheck = null;
     private HashMap<Direction, MapLocation> corners = null;
-    private Float turnStrideRadiusLeft;
     private MapLocation archonLocation;
     private MapPiece [][] quarters;
     private HashMap<Integer, RobotInfo> robotsSeen;
+    private MapPiece  townLocation = null;
 
 
     @Override
@@ -67,7 +67,6 @@ public class CornerMaster implements RobotUnit {
 
     @Override
     public void runStep() throws GameActionException {
-        turnStrideRadiusLeft = SCOUT.strideRadius;
         if(!assignedDirections.keySet().contains(utils.Current.I.getID())) {
             if(directionsToCheck.size()>0) {
                 assignedDirections.put(utils.Current.I.getID(), directionsToCheck.get(0));
@@ -76,44 +75,49 @@ public class CornerMaster implements RobotUnit {
         checkForCorner(assignedDirections.get(utils.Current.I.getID()));
         if(limits.keySet().size()==4) {
            // writeCornersOnConsole();
-            constuctCorners();
-            findQuarters();
-            announceTownLocation();
-            utils.Current.I.resign();
-        }
-
-        if(southSide.get(utils.Current.I.getID())!=null) {
-            limits.put(Direction.getSouth(), southSide.get(utils.Current.I.getID()).y);
-            directionsToCheck.remove(Direction.getSouth());
-            if(directionsToCheck.size()>0) {
-                assignedDirections.put(utils.Current.I.getID(), directionsToCheck.get(0));
+            if(townLocation == null) {
+                constuctCorners();
+                findQuarters();
+                announceTownLocation();
             }
-        }
-        if( eastSide.get(utils.Current.I.getID())!=null) {
-            limits.put(Direction.getEast(), eastSide.get(utils.Current.I.getID()).x);
-            directionsToCheck.remove(Direction.getEast());
-            if(directionsToCheck.size()>0) {
-                assignedDirections.put(utils.Current.I.getID(), directionsToCheck.get(0));
+            if(townLocation != null) {
+                patrolQuarter(townLocation);
+                printEnemyLog();
             }
-        }
-
-        if( northSide.get(utils.Current.I.getID())!=null) {
-            limits.put(Direction.getNorth(), northSide.get(utils.Current.I.getID()).y);
-            directionsToCheck.remove(Direction.getNorth());
-            if(directionsToCheck.size()>0) {
-                assignedDirections.put(utils.Current.I.getID(), directionsToCheck.get(0));
+        } else {
+            if(southSide.get(utils.Current.I.getID())!=null) {
+                limits.put(Direction.getSouth(), southSide.get(utils.Current.I.getID()).y);
+                directionsToCheck.remove(Direction.getSouth());
+                if(directionsToCheck.size()>0) {
+                    assignedDirections.put(utils.Current.I.getID(), directionsToCheck.get(0));
+                }
             }
-        }
-
-        if( westSide.get(utils.Current.I.getID())!=null) {
-            limits.put(Direction.getWest(), westSide.get(utils.Current.I.getID()).x);
-            directionsToCheck.remove(Direction.getWest());
-            if(directionsToCheck.size()>0) {
-                assignedDirections.put(utils.Current.I.getID(), directionsToCheck.get(0));
+            if( eastSide.get(utils.Current.I.getID())!=null) {
+                limits.put(Direction.getEast(), eastSide.get(utils.Current.I.getID()).x);
+                directionsToCheck.remove(Direction.getEast());
+                if(directionsToCheck.size()>0) {
+                    assignedDirections.put(utils.Current.I.getID(), directionsToCheck.get(0));
+                }
             }
-        }
 
-        tryMoveAndScout(assignedDirections.get(utils.Current.I.getID()),0);
+            if( northSide.get(utils.Current.I.getID())!=null) {
+                limits.put(Direction.getNorth(), northSide.get(utils.Current.I.getID()).y);
+                directionsToCheck.remove(Direction.getNorth());
+                if(directionsToCheck.size()>0) {
+                    assignedDirections.put(utils.Current.I.getID(), directionsToCheck.get(0));
+                }
+            }
+
+            if( westSide.get(utils.Current.I.getID())!=null) {
+                limits.put(Direction.getWest(), westSide.get(utils.Current.I.getID()).x);
+                directionsToCheck.remove(Direction.getWest());
+                if(directionsToCheck.size()>0) {
+                    assignedDirections.put(utils.Current.I.getID(), directionsToCheck.get(0));
+                }
+            }
+
+            tryMoveAndScout(assignedDirections.get(utils.Current.I.getID()),0);
+        }
     }
 
     private void announceTownLocation() {
@@ -122,8 +126,10 @@ public class CornerMaster implements RobotUnit {
                 if(quarters[i][j].isOnMapPiece(archonLocation)) {
                     logCornerMasterReport(i, j);
                     try {
+                        townLocation =quarters[i][j];
                         Current.I.broadcast(0,i);
                         Current.I.broadcast(1,j);
+                        break;
                     } catch (GameActionException e) {
                     }
                 }
@@ -201,18 +207,34 @@ public class CornerMaster implements RobotUnit {
 
 
     private void tryMoveAndScout(Direction direction,Integer tries) {
-        if(tries>=10) return;
-        if(utils.Current.I.canMove(direction) && turnStrideRadiusLeft>0) {
+        if(tries>=5) return;
+        if(utils.Current.I.canMove(direction)) {
 
             try {
                 scoutEnemiesAround();
                 utils.Current.I.move(direction);
-                turnStrideRadiusLeft = (float)0;
             } catch (GameActionException e) {
             }
         } else {
+            System.out.print("I can not move"+ tries);
             direction = new Direction((float) (direction.radians + Math.pow(-1,tries%2)*(Math.PI/4)*(tries+1)));
             tryMoveAndScout(direction, ++tries);
+        }
+    }
+
+    private void tryMoveAndScout(MapLocation mapLocation,Integer tries) {
+        if(tries>=5) return;
+        if(utils.Current.I.canMove(mapLocation) ) {
+
+            try {
+                scoutEnemiesAround();
+                utils.Current.I.move(mapLocation);
+            } catch (GameActionException e) {
+            }
+        } else {
+            System.out.print("I can not move"+ tries);
+            mapLocation = new MapLocation(mapLocation.x+tries*10,mapLocation.y-tries);
+            tryMoveAndScout(mapLocation, ++tries);
         }
     }
 
@@ -335,6 +357,31 @@ public class CornerMaster implements RobotUnit {
                 }
             }
         }
+    }
+
+
+    public void patrolQuarter(MapPiece quarter){
+
+
+        while(!utils.Current.I.getLocation().isWithinDistance(quarter.getBottomRight(),5)) {
+            System.out.println(new Direction(utils.Current.I.getLocation(), quarter.getBottomRight()));
+            tryMoveAndScout( quarter.getBottomRight(), 0);
+        }
+        while(!utils.Current.I.getLocation().isWithinDistance(quarter.getTopRight(),5)) {
+            System.out.println(new Direction(utils.Current.I.getLocation(), quarter.getTopRight()));
+            tryMoveAndScout( quarter.getTopRight(), 0);
+        }
+        while(!utils.Current.I.getLocation().isWithinDistance(quarter.getTopLeft(),5)) {
+            System.out.println(new Direction(utils.Current.I.getLocation(), quarter.getTopLeft()));
+            tryMoveAndScout( quarter.getTopLeft(), 0);
+        }
+
+        while(!utils.Current.I.getLocation().isWithinDistance(quarter.getBottomLeft(),5)) {
+            System.out.println(new Direction(utils.Current.I.getLocation(), quarter.getBottomLeft()));
+            tryMoveAndScout( quarter.getBottomLeft(), 0);
+        }
+        System.out.println("NOTHING");
+
     }
 
 }
