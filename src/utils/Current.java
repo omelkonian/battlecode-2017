@@ -1,23 +1,16 @@
-package j.utils;
+package utils;
 
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotType;
 import battlecode.common.Team;
-import sc.utils.EnrichedRC;
 
 /**
  * Utilities concerning current robot.
  */
 public class Current {
     // Current robot controller
-    public static EnrichedRC I;
-    public static RobotController rc;
-
-    public static void setRC(RobotController rc) {
-        Current.rc = rc;
-        I = new EnrichedRC(rc);
-    }
+    public static RobotController I;
 
     public static MapLocation Here() {
         return I.getLocation();

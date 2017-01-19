@@ -1,9 +1,9 @@
-package j.utils;
+package utils;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import sc.teams.*;
+import teams.*;
 
 /**
  * Configuration variables.
@@ -15,6 +15,7 @@ public class Config {
 
     // Channels
     public enum Channel {
+        ARCHON_SPAWNED,
         VERTICAL,
         HORIZONTAL;
 
@@ -29,6 +30,7 @@ public class Config {
     private static Map<Channel, Integer> channels = new HashMap<Channel, Integer>() {{
         put(Channel.VERTICAL, 0);
         put(Channel.HORIZONTAL, 1);
+        put(Channel.ARCHON_SPAWNED, 666);
     }};
 
 }

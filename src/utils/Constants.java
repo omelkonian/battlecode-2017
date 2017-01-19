@@ -1,4 +1,4 @@
-package j.utils;
+package utils;
 import battlecode.common.Direction;
 import battlecode.common.GameConstants;
 
@@ -22,5 +22,4 @@ public class Constants {
 
     // PI
     public static float PI = (float) Math.PI;
-    public static float PI_2 = PI / 2;
 }
