@@ -1,9 +1,6 @@
 package units;
 
-import battlecode.common.Direction;
-import battlecode.common.GameActionException;
-import battlecode.common.MapLocation;
-import battlecode.common.RobotInfo;
+import battlecode.common.*;
 import scala.tools.cmd.gen.AnyVals;
 import utils.Constants;
 import utils.Current;
@@ -81,7 +78,11 @@ public class CornerMaster implements RobotUnit {
                 announceTownLocation();
             }
             if(townLocation != null) {
-                patrolQuarter(townLocation);
+                for(MapPiece[] quarters:quarters) {
+                    for(MapPiece quarter : quarters) {
+                        patrolQuarter(quarter, true);
+                    }
+                }
                 printEnemyLog();
             }
         } else {
@@ -206,8 +207,8 @@ public class CornerMaster implements RobotUnit {
     }
 
 
-    private void tryMoveAndScout(Direction direction,Integer tries) {
-        if(tries>=5) return;
+    private Integer tryMoveAndScout(Direction direction,Integer tries) {
+        if(tries>=5) return -1;
         if(utils.Current.I.canMove(direction)) {
 
             try {
@@ -220,9 +221,27 @@ public class CornerMaster implements RobotUnit {
             direction = new Direction((float) (direction.radians + Math.pow(-1,tries%2)*(Math.PI/4)*(tries+1)));
             tryMoveAndScout(direction, ++tries);
         }
+        return 0;
     }
 
-    private void tryMoveAndScout(MapLocation mapLocation,Integer tries) {
+    private Integer tryMoveAndScout(MapLocation mapLocation,Integer tries) {
+        if(tries>=2) return  tryMoveAndScout(new Direction(Current.I.getLocation(),mapLocation),0);
+        if(utils.Current.I.canMove(mapLocation) ) {
+
+            try {
+                scoutEnemiesAround();
+                utils.Current.I.move(mapLocation);
+            } catch (GameActionException e) {
+            }
+        } else {
+            System.out.print("I can not move"+ tries);
+            mapLocation = new MapLocation(mapLocation.x+tries*10,mapLocation.y-tries*10);
+            tryMoveAndScout(mapLocation, ++tries);
+        }
+        return 0;
+    }
+
+    private void tryMoveAndShake(MapLocation mapLocation,Integer tries) {
         if(tries>=5) return;
         if(utils.Current.I.canMove(mapLocation) ) {
 
@@ -237,7 +256,6 @@ public class CornerMaster implements RobotUnit {
             tryMoveAndScout(mapLocation, ++tries);
         }
     }
-
 
 
 
@@ -360,28 +378,37 @@ public class CornerMaster implements RobotUnit {
     }
 
 
-    public void patrolQuarter(MapPiece quarter){
+    public void patrolQuarter(MapPiece quarter, boolean tryShake) throws GameActionException {
 
 
         while(!utils.Current.I.getLocation().isWithinDistance(quarter.getBottomRight(),5)) {
-            System.out.println(new Direction(utils.Current.I.getLocation(), quarter.getBottomRight()));
-            tryMoveAndScout( quarter.getBottomRight(), 0);
+            if(tryMoveAndScout( quarter.getBottomRight(), 0)==-1) break;
+            if(tryShake) shakeNearByTrees();
         }
         while(!utils.Current.I.getLocation().isWithinDistance(quarter.getTopRight(),5)) {
-            System.out.println(new Direction(utils.Current.I.getLocation(), quarter.getTopRight()));
-            tryMoveAndScout( quarter.getTopRight(), 0);
+            if(tryMoveAndScout( quarter.getTopRight(), 0)==-1) break;
+            if(tryShake) shakeNearByTrees();
         }
         while(!utils.Current.I.getLocation().isWithinDistance(quarter.getTopLeft(),5)) {
-            System.out.println(new Direction(utils.Current.I.getLocation(), quarter.getTopLeft()));
-            tryMoveAndScout( quarter.getTopLeft(), 0);
+            if(tryMoveAndScout( quarter.getTopLeft(), 0)==-1) break;
+            if(tryShake) shakeNearByTrees();
         }
 
         while(!utils.Current.I.getLocation().isWithinDistance(quarter.getBottomLeft(),5)) {
-            System.out.println(new Direction(utils.Current.I.getLocation(), quarter.getBottomLeft()));
-            tryMoveAndScout( quarter.getBottomLeft(), 0);
+            if(tryMoveAndScout( quarter.getBottomLeft(), 0)==-1) break;
+            if(tryShake) shakeNearByTrees();
         }
-        System.out.println("NOTHING");
 
+    }
+
+    public void shakeNearByTrees() throws GameActionException {
+        TreeInfo[] nearbyTrees = Current.I.senseNearbyTrees();
+        for(TreeInfo tree: nearbyTrees) {
+            if(Current.I.canShake(tree.getID())) {
+                System.out.println("Shaked the tree in location "+ tree.getLocation());
+                Current.I.shake(tree.getID());
+            }
+        }
     }
 
 }
