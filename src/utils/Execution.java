@@ -1,9 +1,13 @@
 package utils;
 
 import battlecode.common.Clock;
+import battlecode.common.Direction;
+import battlecode.common.GameActionException;
 
+import java.util.List;
 import java.util.function.*;
-import java.util.stream.IntStream;
+
+import static utils.Movement.waitMove;
 
 /**
  * Collision utilities.
@@ -34,10 +38,8 @@ public final class Execution {
      * @param condition the condition to satisfy
      */
     public static void await(BooleanSupplier condition) {
-        while (!condition.getAsBoolean()) {
-            System.out.println(".");
+        while (!condition.getAsBoolean())
             Clock.yield();
-        }
     }
 
     /**
@@ -46,7 +48,6 @@ public final class Execution {
     public static <T> void waitAndThen(T init, Predicate<T> condition, Consumer<T> action, Function<T, T> variance) {
         T current = init;
         while (!condition.test(current)) {
-            System.out.println("..");
             current = variance.apply(current);
             Clock.yield();
         }
@@ -59,5 +60,17 @@ public final class Execution {
     public static void waitAndThen(BooleanSupplier condition, Runnable action) {
         await(condition);
         action.run();
+    }
+
+
+    public static void movingAction(Consumer<Direction> action,
+                                    List<Pair<Direction, Direction>> directions,
+                                    float stride) {
+        for (Pair<Direction, Direction> entry : directions) {
+            if (entry.fst != null)
+                action.accept(entry.fst);
+            if (entry.snd != null)
+                waitMove(entry.snd, stride);
+        }
     }
 }

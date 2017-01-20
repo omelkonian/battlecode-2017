@@ -1,6 +1,6 @@
 package teams;
 
-import units.Farmer;
+import units.gardeners.Farmer;
 
 import static battlecode.common.RobotType.*;
 
@@ -11,6 +11,6 @@ public class SingleFarmerTeam extends SingleRobotTeam {
 
     @Override
     protected void runSingle() {
-        new Farmer().run();
+        new Farmer(4).run();
     }
 }

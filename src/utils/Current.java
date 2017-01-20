@@ -27,4 +27,5 @@ public class Current {
     public static Team MyTeam() {
         return I.getTeam();
     }
+
 }

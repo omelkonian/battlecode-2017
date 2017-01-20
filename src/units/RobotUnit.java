@@ -2,23 +2,31 @@ package units;
 
 import battlecode.common.GameActionException;
 
-import static utils.Winning.tryInstantWin;
-
 /**
  * Base trait for units.
  */
 public interface RobotUnit {
 
+    /*
+     Fine-grained stages
+      */
+    default void prerun() {}
+    default void postrun() {}
+
+    /*
+     General
+      */
     default void run() {
-        try {
-            while (true) {
-                tryInstantWin();
+        while (true)
+            try {
+                prerun();
                 runStep();
+                postrun();
             }
-        } catch (GameActionException e) {
-            System.out.println("Game Exception");
-            e.printStackTrace();
-        }
+            catch (GameActionException e) {
+                System.out.println("Game Exception");
+                e.printStackTrace();
+            }
     }
 
     void runStep() throws GameActionException;

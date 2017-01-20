@@ -1,6 +1,7 @@
 package utils;
 import battlecode.common.Direction;
-import battlecode.common.GameConstants;
+import static battlecode.common.GameConstants.*;
+import static utils.Current.*;
 
 /**
  * Useful extra constants.
@@ -17,8 +18,15 @@ public class Constants {
     public static Direction SW = S.rotateRightDegrees(45);
 
     // Victory
-    public static float BULLETS_TO_WIN =
-            GameConstants.VICTORY_POINTS_TO_WIN * GameConstants.BULLET_EXCHANGE_RATE;
+    public static float currentExchangeRate() {
+        return VP_BASE_COST + (I.getRoundNum() * VP_INCREASE_PER_ROUND);
+    }
+    public static int victoryPointsLeftToWin() {
+        return VICTORY_POINTS_TO_WIN - I.getTeamVictoryPoints();
+    }
+    public static float bulletsLeftToWin() {
+        return victoryPointsLeftToWin() * currentExchangeRate();
+    }
 
     // PI
     public static float PI = (float) Math.PI;

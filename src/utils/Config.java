@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import teams.*;
+import strategies.donation.*;
 
 /**
  * Configuration variables.
@@ -12,6 +13,9 @@ public class Config {
     // Players
     public static RobotTeam Player1 = new SingleFarmerTeam();
     public static RobotTeam Player2 = new IdleTeam();
+
+    // Strategies
+    public static DonationStrategy donationStrategy = new GreedyDonation();
 
     // Channels
     public enum Channel {
